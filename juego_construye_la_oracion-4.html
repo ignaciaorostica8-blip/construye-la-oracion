@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¡Construye la oración!</title>
+<style>
+:root{--blue:#2678c9;--sky:#e8f6ff;--navy:#153d75;--green:#36a852;--yellow:#fff1a8;--pink:#ffe5ef}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(140deg,#dff4ff,#fff8d9);font-family:"Trebuchet MS",Arial,sans-serif;color:var(--navy)}
+header{background:#bde8ff;padding:18px 14px;text-align:center;border-bottom:5px solid #8ed4ff}
+h1{margin:0;font-size:clamp(1.8rem,5vw,3rem);color:#06458d}
+header p{margin:8px auto 0;max-width:850px;font-size:1.05rem}
+main{max-width:1100px;margin:18px auto;padding:0 12px;display:grid;grid-template-columns:250px 1fr;gap:16px}
+.panel{background:#fff;border:2px solid #b7e3ff;border-radius:22px;padding:16px;box-shadow:0 5px 12px #1e5d8b14}
+.sidebar h2{margin-top:0}
+.levels{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.level-btn{flex:1;border:2px solid #7bbcf0;background:#edf8ff;color:#164d8e;border-radius:14px;padding:10px 3px;font-weight:bold;cursor:pointer}
+.level-btn.active{background:#2478ca;color:white}
+.note{background:#eff9ff;border-radius:14px;padding:12px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+.primary,.secondary,.listen{border:0;border-radius:14px;padding:11px 16px;font-weight:bold}
+.primary{background:var(--green);color:white;font-size:1.08rem;box-shadow:0 3px 0 #247d39}
+.secondary{background:#e3f3ff;color:#15539a;border:2px solid #8acaff}
+.listen{background:#1f69b7;color:white;border-radius:50%;width:48px;height:48px;font-size:1.3rem}
+.task-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.scene{width:100px;height:100px;display:grid;place-items:center;background:#f3faff;border:2px solid #8bcaff;border-radius:18px;font-size:3.4rem}
+.prompt{flex:1;min-width:180px}
+.prompt h2{margin:0 0 6px}
+.small{font-size:.92rem;color:#355d86}
+.feedback{margin:14px 0;padding:12px 14px;border-radius:16px;background:#f0ffe7;border:2px solid #b9ed9b;min-height:54px;font-weight:bold;display:flex;align-items:center;gap:10px}
+.feedback.retry{background:#fff8dd;border-color:#ffe08a}
+.feedback .face{font-size:1.7rem}
+h3{margin-bottom:8px}
+.slots{min-height:94px;border:2px dashed #75b9f2;background:#f7fcff;border-radius:18px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.slot{min-width:88px;min-height:74px;border:2px solid #80c5ff;background:white;border-radius:12px;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative}
+.slot .pic{font-size:2rem}
+.slot .word{font-weight:bold;font-size:.9rem}
+.slot button{position:absolute;right:2px;top:0;border:0;background:#ffe5e5;border-radius:50%;color:#9a2222}
+.bank{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:9px;margin-top:12px}
+.card{border:2px solid #8bcaff;border-radius:15px;background:#fff;padding:9px 5px;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:110px;color:#163f77}
+.card:hover,.card:focus{background:#eff9ff;outline:3px solid #c1e5ff}
+.card .pic{font-size:2.25rem;line-height:1.2}
+.card .word{font-weight:bold;text-align:center}
+.card .audio{font-size:.8rem;color:#1d70bd}
+.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.progress{height:12px;background:#e4eff8;border-radius:99px;overflow:hidden;margin:12px 0}
+.progress span{display:block;height:100%;width:0;background:#36a852;transition:width .3s}
+.badge{display:inline-block;background:#fff0b8;padding:5px 10px;border-radius:99px;font-weight:bold}
+footer{text-align:center;padding:10px 16px 24px;font-size:.86rem;color:#426487}
+.hidden{display:none!important}
+@media(max-width:720px){main{grid-template-columns:1fr}.sidebar{order:2}.game{order:1}.scene{width:78px;height:78px}.bank{grid-template-columns:repeat(3,minmax(0,1fr))}.card{min-height:100px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>⭐ ¡Construye la oración! ⭐</h1>
+  <p>Escucha, mira los pictogramas y toca las palabras en el orden correcto. ¡Cada intento te ayuda a aprender!</p>
+</header>
+<main>
+  <aside class="panel sidebar">
+    <h2>🎯 Tu misión</h2>
+    <div class="badge" id="levelLabel">Nivel 1 · Oraciones sencillas</div>
+    <div class="levels" id="levelButtons"></div>
+    <div class="note" id="levelNote">Forma una oración con 3 palabras: quién + acción + qué.</div>
+    <p><strong>Cómo jugar:</strong></p>
+    <ol>
+      <li>Escucha la oración modelo.</li>
+      <li>Toca los pictogramas en el orden que necesitas.</li>
+      <li>Pulsa <b>Revisar</b>.</li>
+    </ol>
+    <button class="secondary" id="instructionsBtn">🔊 Escuchar instrucciones</button>
+    <p class="small">Puedes tocar el altavoz de cada tarjeta para escuchar su palabra.</p>
+    <button class="secondary" id="resetBtn">↻ Reiniciar nivel</button>
+  </aside>
+
+  <section class="panel game">
+    <div class="task-top">
+      <div class="scene" id="scene" aria-label="Imagen de la actividad">🍎</div>
+      <div class="prompt">
+        <h2>Escucha y construye</h2>
+        <div id="modelText">“El niño come la manzana”.</div>
+        <p class="small" id="taskHint">¿Puedes ordenar las palabras para formar la oración?</p>
+      </div>
+      <button class="listen" id="modelBtn" title="Escuchar oración modelo" aria-label="Escuchar oración modelo">🔊</button>
+    </div>
+    <div class="progress"><span id="progressBar"></span></div>
+    <div class="small" id="progressText">Actividad 1 de 3 · Estrellas: 0</div>
+
+    <h3>🧩 Tu oración</h3>
+    <div class="slots" id="slots" aria-live="polite"><span class="small">Toca una tarjeta de abajo para comenzar…</span></div>
+    <div class="controls">
+      <button class="primary" id="checkBtn">✓ Revisar</button>
+      <button class="secondary" id="undoBtn">↩ Quitar última</button>
+      <button class="secondary" id="clearBtn">Borrar oración</button>
+      <button class="secondary" id="hearBuiltBtn">🔊 Escuchar mi oración</button>
+    </div>
+
+    <h3>🖼️ Elige los pictogramas</h3>
+    <div class="small">Los pictogramas de ARASAAC se cargarán cuando haya conexión a internet. Si no cargan, verás un símbolo de apoyo.</div>
+    <div class="bank" id="bank"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite"><span class="face">🌟</span><span>¡Tú puedes! Vamos paso a paso.</span></div>
+    <button class="primary hidden" id="nextBtn">Siguiente actividad ➜</button>
+  </section>
+</main>
+<footer>
+  Juego educativo de conciencia sintáctica y comunicación. La voz utiliza la función de síntesis de voz disponible en el navegador.
+  <br>Los pictogramas, cuando estén disponibles, se consultan desde la API pública de ARASAAC.
+</footer>
+<script>
+const levels = [
+ {label:"Nivel 1 · Sujeto + acción",note:"Empieza con oraciones cortas: quién + acción.",tasks:[
+ {model:"El niño corre.",scene:"🏃",answer:["el niño","corre"],cards:[["el niño","niño","👦"],["la niña","niña","👧"],["corre","correr","🏃"],["duerme","dormir","😴"]]},
+ {model:"La niña canta.",scene:"🎤",answer:["la niña","canta"],cards:[["la niña","niña","👧"],["el niño","niño","👦"],["canta","cantar","🎤"],["salta","saltar","🦘"]]}
+ ]},
+ {label:"Nivel 2 · Sujeto + acción + objeto",note:"Añade qué o quién recibe la acción.",tasks:[
+ {model:"El niño come la manzana.",scene:"🍎",answer:["el niño","come","la manzana"],cards:[["el niño","niño","👦"],["la niña","niña","👧"],["come","comer","😋"],["bebe","beber","🥤"],["la manzana","manzana","🍎"],["la pelota","pelota","⚽"]]},
+ {model:"La niña patea la pelota.",scene:"⚽",answer:["la niña","patea","la pelota"],cards:[["la niña","niña","👧"],["el niño","niño","👦"],["patea","patear","🦶"],["come","comer","😋"],["la pelota","pelota","⚽"],["el libro","libro","📘"]]}
+ ]},
+ {label:"Nivel 3 · Artículos y objetos",note:"Fíjate en palabras como el, la, un y una.",tasks:[
+ {model:"El gato mira una mariposa.",scene:"🐱",answer:["el gato","mira","una mariposa"],cards:[["el gato","gato","🐱"],["el perro","perro","🐶"],["mira","mirar","👀"],["come","comer","😋"],["una mariposa","mariposa","🦋"],["una pelota","pelota","⚽"]]},
+ {model:"La niña lee un libro.",scene:"📘",answer:["la niña","lee","un libro"],cards:[["la niña","niña","👧"],["el niño","niño","👦"],["lee","leer","📖"],["dibuja","dibujar","🖍️"],["un libro","libro","📘"],["una manzana","manzana","🍎"]]}
+ ]},
+ {label:"Nivel 4 · Añadimos adjetivos",note:"Incluye una característica para describir personas u objetos.",tasks:[
+ {model:"El perro pequeño corre.",scene:"🐕",answer:["el perro","pequeño","corre"],cards:[["el perro","perro","🐶"],["el gato","gato","🐱"],["pequeño","pequeño","🤏"],["grande","grande","🐘"],["corre","correr","🏃"],["duerme","dormir","😴"]]},
+ {model:"La niña feliz canta.",scene:"😊",answer:["la niña","feliz","canta"],cards:[["la niña","niña","👧"],["el niño","niño","👦"],["feliz","feliz","😊"],["triste","triste","😟"],["canta","cantar","🎤"],["llora","llorar","😢"]]}
+ ]},
+ {label:"Nivel 5 · Lugar",note:"Responde también dónde ocurre la acción.",tasks:[
+ {model:"El niño juega en el patio.",scene:"🛝",answer:["el niño","juega","en","el patio"],cards:[["el niño","niño","👦"],["la niña","niña","👧"],["juega","jugar","🤸"],["come","comer","😋"],["en","en","📍"],["el patio","patio","🛝"],["la casa","casa","🏠"]]},
+ {model:"La niña lee en la escuela.",scene:"🏫",answer:["la niña","lee","en","la escuela"],cards:[["la niña","niña","👧"],["el niño","niño","👦"],["lee","leer","📖"],["duerme","dormir","😴"],["en","en","📍"],["la escuela","escuela","🏫"],["el parque","parque","🌳"]]}
+ ]},
+ {label:"Nivel 6 · Tiempo y secuencia",note:"Ordena palabras que indican cuándo sucede algo.",tasks:[
+ {model:"Hoy el niño va al parque.",scene:"🌳",answer:["hoy","el niño","va","al parque"],cards:[["hoy","hoy","📅"],["mañana","mañana","🌅"],["el niño","niño","👦"],["la niña","niña","👧"],["va","ir","🚶"],["al parque","parque","🌳"],["a la casa","casa","🏠"]]},
+ {model:"Primero la niña se lava las manos.",scene:"🧼",answer:["primero","la niña","se lava","las manos"],cards:[["primero","primero","1️⃣"],["después","después","➡️"],["la niña","niña","👧"],["se lava","lavarse","🧼"],["las manos","mano","👐"],["come","comer","😋"]]}
+ ]},
+ {label:"Nivel 7 · Negación",note:"Construye oraciones con la palabra no.",tasks:[
+ {model:"El niño no quiere sopa.",scene:"🥣",answer:["el niño","no","quiere","sopa"],cards:[["el niño","niño","👦"],["la niña","niña","👧"],["no","no","🚫"],["sí","sí","✅"],["quiere","querer","💭"],["sopa","sopa","🥣"],["agua","agua","💧"]]},
+ {model:"La niña no tiene sueño.",scene:"😴",answer:["la niña","no","tiene","sueño"],cards:[["la niña","niña","👧"],["el niño","niño","👦"],["no","no","🚫"],["tiene","tener","🙋"],["sueño","sueño","😴"],["hambre","hambre","🍽️"]]}
+ ]},
+ {label:"Nivel 8 · Conector y",note:"Une dos ideas usando el conector y.",tasks:[
+ {model:"El niño salta y la niña baila.",scene:"💃",answer:["el niño","salta","y","la niña","baila"],cards:[["el niño","niño","👦"],["la niña","niña","👧"],["salta","saltar","🦘"],["baila","bailar","💃"],["y","y","➕"],["duerme","dormir","😴"]]},
+ {model:"La mamá cocina y el papá limpia.",scene:"🍳",answer:["la mamá","cocina","y","el papá","limpia"],cards:[["la mamá","mamá","👩"],["el papá","papá","👨"],["cocina","cocinar","🍳"],["limpia","limpiar","🧹"],["y","y","➕"],["duerme","dormir","😴"]]}
+ ]},
+ {label:"Nivel 9 · Causa: porque",note:"Relaciona una acción con su razón usando porque.",tasks:[
+ {model:"El niño usa paraguas porque llueve.",scene:"☔",answer:["el niño","usa","paraguas","porque","llueve"],cards:[["el niño","niño","👦"],["usa","usar","🖐️"],["paraguas","paraguas","☔"],["porque","porque","💭"],["llueve","llover","🌧️"],["brilla","brillar","☀️"]]},
+ {model:"La niña sonríe porque está feliz.",scene:"😊",answer:["la niña","sonríe","porque","está","feliz"],cards:[["la niña","niña","👧"],["sonríe","sonreír","😊"],["porque","porque","💭"],["está","estar","📍"],["feliz","feliz","😄"],["triste","triste","😟"]]}
+ ]},
+ {label:"Nivel 10 · Oraciones complejas",note:"¡Gran reto! Ordena oraciones largas con varias ideas y conectores.",tasks:[
+ {model:"Después de jugar, el niño guarda los juguetes en la caja.",scene:"🧸",answer:["después de jugar","el niño","guarda","los juguetes","en","la caja"],cards:[["después de jugar","jugar","🤸"],["el niño","niño","👦"],["guarda","guardar","📦"],["los juguetes","juguete","🧸"],["en","en","📍"],["la caja","caja","🗃️"],["la niña","niña","👧"]]},
+ {model:"La niña se pone el abrigo porque hace frío.",scene:"🧥",answer:["la niña","se pone","el abrigo","porque","hace frío"],cards:[["la niña","niña","👧"],["se pone","poner","🧥"],["el abrigo","abrigo","🧥"],["porque","porque","💭"],["hace frío","frío","❄️"],["hace calor","calor","☀️"],["el niño","niño","👦"]]}
+ ]}
+];
+let level=0, taskIndex=0, chosen=[], stars=0, locked=false;
+const $=id=>document.getElementById(id);
+$('levelButtons').innerHTML=levels.map((l,i)=>`<button class="level-btn ${i===0?'active':''}" data-level="${i}" aria-label="Nivel ${i+1}">${i+1}</button>`).join('');
+function speak(text){
+ if(!('speechSynthesis' in window)){setFeedback("¡Buen trabajo! Tu navegador no tiene voz activada, pero puedes seguir jugando.",true);return}
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text); u.lang='es-ES'; u.rate=.88; u.pitch=1;
+ const voices=speechSynthesis.getVoices(); const v=voices.find(x=>x.lang && x.lang.toLowerCase().startsWith('es'));
+ if(v)u.voice=v; speechSynthesis.speak(u);
+}
+function task(){return levels[level].tasks[taskIndex]}
+function normalize(s){return s.toLocaleLowerCase('es').replace(/[.,¡!¿?]/g,'').trim()}
+function setFeedback(message,positive=true){
+ $('feedback').className='feedback'+(positive?'':' retry');
+ $('feedback').innerHTML=`<span class="face">${positive?'🌟':'💛'}</span><span>${message}</span>`;
+ speak(message);
+}
+function render(){
+ const t=task(); chosen=[];locked=false;
+ document.querySelectorAll('.level-btn').forEach(b=>b.classList.toggle('active',Number(b.dataset.level)===level));
+ $('levelLabel').textContent=levels[level].label;$('levelNote').textContent=levels[level].note;
+ $('modelText').textContent='“'+t.model+'”';$('scene').textContent=t.scene;
+ $('progressText').textContent=`Actividad ${taskIndex+1} de ${levels[level].tasks.length} · Estrellas: ${stars}`;
+ $('progressBar').style.width=((taskIndex)/levels[level].tasks.length*100)+'%';
+ $('nextBtn').classList.add('hidden');
+ $('slots').innerHTML='<span class="small">Toca una tarjeta de abajo para comenzar…</span>';
+ $('bank').innerHTML='';
+ // Shuffle card order
+ [...t.cards].sort(()=>Math.random()-.5).forEach((c,i)=>{
+  const btn=document.createElement('button');btn.className='card';btn.type='button';
+  btn.innerHTML=`<span class="pic">${c[2]}</span><span class="word">${c[0]}</span><span class="audio">🔊 escuchar</span>`;
+  btn.setAttribute('aria-label',c[0]+', añadir a la oración');
+  btn.addEventListener('click',()=>{if(locked)return; if(chosen.length>=10)return; chosen.push({label:c[0],key:c[1],emoji:c[2]});drawSlots();speak(c[0]);});
+  // Attempt to load matching ARASAAC pictogram from its public API; emoji remains as fallback.
+  const pic=btn.querySelector('.pic');
+  loadArasaac(c[1],pic);
+  $('bank').appendChild(btn);
+ });
+ setFeedback(level===0?"¡Vamos a construir una oración! Escucha el ejemplo y elige las tarjetas.":level===1?"¡Muy bien! Ahora añade más detalles a la oración.":"¡Qué desafío tan bueno! Vamos a conectar las ideas.",true);
+}
+async function loadArasaac(term,element){
+ try{
+  const res=await fetch('https://api.arasaac.org/api/pictograms/es/search/'+encodeURIComponent(term));
+  if(!res.ok)return; const data=await res.json(); if(!Array.isArray(data)||!data.length)return;
+  const id=data[0]._id||data[0].id; if(!id)return;
+  const img=document.createElement('img');img.src=`https://static.arasaac.org/pictograms/${id}/${id}_500.png`;
+  img.alt=term;img.style.cssText='width:48px;height:48px;object-fit:contain';img.onerror=()=>img.remove();
+  img.onload=()=>{element.textContent='';element.appendChild(img)};
+ }catch(e){/* Si no hay conexión, se conservan los símbolos alternativos. */}
+}
+function drawSlots(){
+ const el=$('slots');el.innerHTML='';
+ if(!chosen.length){el.innerHTML='<span class="small">Toca una tarjeta de abajo para comenzar…</span>';return}
+ chosen.forEach((c,i)=>{
+  const s=document.createElement('div');s.className='slot';
+  s.innerHTML=`<button aria-label="Quitar ${c.label}" title="Quitar">×</button><span class="pic">${c.emoji}</span><span class="word">${c.label}</span>`;
+  s.querySelector('button').onclick=()=>{if(locked)return;chosen.splice(i,1);drawSlots()};
+  el.appendChild(s);
+ });
+}
+function check(){
+ if(locked)return;
+ if(!chosen.length){setFeedback("¡Empecemos! Elige una tarjeta para crear tu oración.",false);return}
+ const got=chosen.map(c=>normalize(c.label)).join('|');
+ const expected=task().answer.map(normalize).join('|');
+ if(got===expected){
+  locked=true;stars++;$('progressText').textContent=`Actividad ${taskIndex+1} de ${levels[level].tasks.length} · Estrellas: ${stars}`;
+  $('progressBar').style.width=((taskIndex+1)/levels[level].tasks.length*100)+'%';
+  setFeedback(["¡Excelente! Ordenaste todas las palabras. ¡Tu oración está completa!","¡Lo lograste! Cada pictograma está en su lugar. ¡Sigue así!","¡Fantástico! Construiste una oración muy clara."][Math.floor(Math.random()*3)],true);
+  speak("La oración es: "+task().model);
+  $('nextBtn').classList.remove('hidden');$('checkBtn').disabled=true;
+ }else{
+  const answer=chosen.map(c=>c.label).join(' ');
+  setFeedback("¡Buen intento! Estás aprendiendo. Escucha el ejemplo otra vez y prueba cambiando el orden.",false);
+ }
+}
+function next(){
+ $('checkBtn').disabled=false;
+ if(taskIndex<levels[level].tasks.length-1){taskIndex++;render();speak("Siguiente actividad. Escucha: "+task().model)}
+ else if(level<2){level++;taskIndex=0;render();speak("¡Nivel completado! ¡Vamos al siguiente reto! "+levels[level].note)}
+ else{setFeedback("¡Lo hiciste increíble! Terminaste los tres niveles. ¡Cada vez construyes mejores oraciones!",true);$('nextBtn').classList.add('hidden');$('progressBar').style.width='100%';$('progressText').textContent=`¡Juego completado! · Estrellas: ${stars}`;speak("¡Felicitaciones! Terminaste todos los niveles.")}
+}
+$('modelBtn').onclick=()=>speak("Escucha la oración: "+task().model);
+$('instructionsBtn').onclick=()=>speak("Bienvenido al juego Construye la oración. Primero escucha el ejemplo. Después toca los pictogramas en el orden correcto. Puedes escuchar cada palabra tocando su tarjeta. Cuando termines, presiona Revisar. ¡Todos los intentos te ayudan a aprender!");
+$('checkBtn').onclick=check;
+$('undoBtn').onclick=()=>{if(!locked&&chosen.length){chosen.pop();drawSlots()}};
+$('clearBtn').onclick=()=>{if(!locked){chosen=[];drawSlots();setFeedback("¡No pasa nada! Puedes volver a empezar. Elige las tarjetas que necesitas.",true)}};
+$('hearBuiltBtn').onclick=()=>{if(chosen.length)speak(chosen.map(c=>c.label).join(' '));else speak("Todavía no has elegido palabras. Toca una tarjeta para comenzar.")};
+$('nextBtn').onclick=()=>{ $('checkBtn').disabled=false;next()};
+$('resetBtn').onclick=()=>{taskIndex=0;stars=0;$('checkBtn').disabled=false;render();speak("Reiniciamos el nivel. ¡Tú puedes!")};
+document.querySelectorAll('.level-btn').forEach(b=>b.onclick=()=>{level=Number(b.dataset.level);taskIndex=0;$('checkBtn').disabled=false;render();speak(levels[level].label+". "+levels[level].note)});
+render();
+</script>
+</body>
+</html>
